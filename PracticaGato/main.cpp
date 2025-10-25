@@ -1,14 +1,11 @@
 #include <iostream>
-#include <stdlib.h> // Para system("cls") o system("clear")
+#include <stdlib.h>
 
 using namespace std;
 
-// Matriz global para el tablero
 char tablero[3][3];
+char jugadorActual = 'X'; // 'X' siempre empieza
 
-/**
- * @brief Inicializa el tablero con números del 1 al 9.
- */
 void inicializarTablero() {
     char contador = '1';
     for (int i = 0; i < 3; i++) {
@@ -19,14 +16,8 @@ void inicializarTablero() {
     }
 }
 
-/**
- * @brief Dibuja el tablero de juego en la consola.
- */
 void mostrarTablero() {
-    // Limpia la consola (funciona en Windows)
-    // Usa system("clear") en Linux/macOS
     system("cls");
-
     cout << "===== TIC TAC TOE =====" << endl << endl;
 
     for (int i = 0; i < 3; i++) {
@@ -40,13 +31,58 @@ void mostrarTablero() {
     cout << endl << "=====================" << endl;
 }
 
-int main() {
-    cout << "Iniciando el juego..." << endl;
-    inicializarTablero();
-    mostrarTablero();
+/**
+ * @brief Pide al jugador actual que ingrese su jugada.
+ */
+void realizarJugada() {
+    char eleccion;
+    cout << "Turno del Jugador " << jugadorActual << ". Elige una casilla (1-9): ";
+    cin >> eleccion;
 
-    // Pausa para ver el tablero inicial
-    cin.get();
+    // Lógica simple para encontrar la casilla (se mejorará en el Segmento 4)
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (tablero[i][j] == eleccion) {
+                tablero[i][j] = jugadorActual;
+                return; // Jugada realizada
+            }
+        }
+    }
+}
+
+/**
+ * @brief Cambia el turno al otro jugador.
+ */
+void cambiarJugador() {
+    if (jugadorActual == 'X') {
+        jugadorActual = 'O';
+    } else {
+        jugadorActual = 'X';
+    }
+}
+
+int main() {
+    bool juegoTerminado = false;
+
+    inicializarTablero();
+
+    // Bucle principal del juego
+    while (!juegoTerminado) {
+        mostrarTablero();
+        realizarJugada();
+        // Por ahora, solo jugamos 9 turnos
+        // En el siguiente segmento añadiremos la lógica de ganador
+
+        cambiarJugador();
+
+        // Lógica temporal para terminar
+        // static int turnos = 0;
+        // turnos++;
+        // if (turnos == 9) juegoTerminado = true;
+    }
+
+    mostrarTablero();
+    cout << "Fin del juego." << endl;
 
     return 0;
 }
