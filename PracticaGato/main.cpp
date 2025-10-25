@@ -1,88 +1,75 @@
-#include <iostream>
-#include <stdlib.h>
+// ... (incluir las funciones anteriores: inicializarTablero, mostrarTablero, realizarJugada, cambiarJugador) ...
 
-using namespace std;
-
-char tablero[3][3];
-char jugadorActual = 'X'; // 'X' siempre empieza
-
-void inicializarTablero() {
-    char contador = '1';
+/**
+ * @brief Verifica si el jugador actual ha ganado.
+ * @return true si el jugador actual ganó, false en caso contrario.
+ */
+bool verificarGanador() {
+    // Verificar filas
     for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            tablero[i][j] = contador;
-            contador++;
+        if (tablero[i][0] == jugadorActual && tablero[i][1] == jugadorActual && tablero[i][2] == jugadorActual) {
+            return true;
         }
     }
-}
 
-void mostrarTablero() {
-    system("cls");
-    cout << "===== TIC TAC TOE =====" << endl << endl;
-
-    for (int i = 0; i < 3; i++) {
-        cout << "     |     |     " << endl;
-        cout << "  " << tablero[i][0] << "  |  " << tablero[i][1] << "  |  " << tablero[i][2] << "  " << endl;
-        cout << "     |     |     " << endl;
-        if (i < 2) {
-            cout << "-----------------" << endl;
+    // Verificar columnas
+    for (int j = 0; j < 3; j++) {
+        if (tablero[0][j] == jugadorActual && tablero[1][j] == jugadorActual && tablero[2][j] == jugadorActual) {
+            return true;
         }
     }
-    cout << endl << "=====================" << endl;
+
+    // Verificar diagonales
+    if (tablero[0][0] == jugadorActual && tablero[1][1] == jugadorActual && tablero[2][2] == jugadorActual) {
+        return true;
+    }
+    if (tablero[0][2] == jugadorActual && tablero[1][1] == jugadorActual && tablero[2][0] == jugadorActual) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
- * @brief Pide al jugador actual que ingrese su jugada.
+ * @brief Verifica si el juego ha terminado en empate (tablero lleno).
+ * @return true si es empate, false en caso contrario.
  */
-void realizarJugada() {
-    char eleccion;
-    cout << "Turno del Jugador " << jugadorActual << ". Elige una casilla (1-9): ";
-    cin >> eleccion;
-
-    // Lógica simple para encontrar la casilla (se mejorará en el Segmento 4)
+bool verificarEmpate() {
+    // Si no hay ganador, revisamos si el tablero está lleno
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            if (tablero[i][j] == eleccion) {
-                tablero[i][j] = jugadorActual;
-                return; // Jugada realizada
+            // Si encuentra una casilla que NO sea X o O, el juego sigue
+            if (tablero[i][j] != 'X' && tablero[i][j] != 'O') {
+                return false;
             }
         }
     }
+    // Si salimos del bucle, el tablero está lleno
+    return true;
 }
 
-/**
- * @brief Cambia el turno al otro jugador.
- */
-void cambiarJugador() {
-    if (jugadorActual == 'X') {
-        jugadorActual = 'O';
-    } else {
-        jugadorActual = 'X';
-    }
-}
 
 int main() {
     bool juegoTerminado = false;
-
     inicializarTablero();
 
-    // Bucle principal del juego
     while (!juegoTerminado) {
         mostrarTablero();
         realizarJugada();
-        // Por ahora, solo jugamos 9 turnos
-        // En el siguiente segmento añadiremos la lógica de ganador
 
-        cambiarJugador();
-
-        // Lógica temporal para terminar
-        // static int turnos = 0;
-        // turnos++;
-        // if (turnos == 9) juegoTerminado = true;
+        if (verificarGanador()) {
+            juegoTerminado = true;
+            mostrarTablero(); // Muestra el tablero final
+            cout << "¡Felicidades! El Jugador " << jugadorActual << " ha ganado." << endl;
+        } else if (verificarEmpate()) {
+            juegoTerminado = true;
+            mostrarTablero(); // Muestra el tablero final
+            cout << "¡Es un empate!" << endl;
+        } else {
+            // Si nadie ha ganado y no hay empate, cambiamos de jugador
+            cambiarJugador();
+        }
     }
-
-    mostrarTablero();
-    cout << "Fin del juego." << endl;
 
     return 0;
 }
