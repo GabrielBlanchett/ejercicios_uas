@@ -1,12 +1,13 @@
 /*
  * conecta4.cpp
- * Segmento 3: Detección de Victoria y Empate
+ * Segmento 4: Bucle de Revancha (Código Final)
  */
 
 #include <iostream>
 #include <vector>
 #include <string>
 #include <limits>
+#include <cctype> // Para std::tolower
 
 // --- Constantes del Juego ---
 const int FILAS = 6;
@@ -24,52 +25,67 @@ void imprimirTablero(const Tablero& tablero);
 bool soltarFicha(Tablero& tablero, int col, char jugador, int& fila_colocada);
 bool esColumnaLlena(const Tablero& tablero, int col);
 int obtenerMovimientoValido(const Tablero& tablero, char jugador);
-bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c); // Nueva función
+bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c);
 
 /**
  * @brief Función Principal
  */
 int main() {
-    Tablero tablero(FILAS, std::vector<char>(COLUMNAS));
-    inicializarTablero(tablero);
-
-    char jugadorActual = JUGADOR_X;
-    bool juegoEnCurso = true;
-    int movimientos = 0; // Nuevo contador de movimientos
+    char jugarDeNuevo;
 
     std::cout << "¡Bienvenido a Conecta 4!" << std::endl;
 
-    while (juegoEnCurso) {
-        // 1. Mostrar tablero
-        imprimirTablero(tablero);
+    do {
+        // --- Reiniciar variables para un nuevo juego ---
+        Tablero tablero(FILAS, std::vector<char>(COLUMNAS));
+        inicializarTablero(tablero);
 
-        // 2. Pedir jugada
-        int col = obtenerMovimientoValido(tablero, jugadorActual);
+        char jugadorActual = JUGADOR_X;
+        bool juegoEnCurso = true;
+        int movimientos = 0;
 
-        // 3. Colocar ficha
-        int fila;
-        soltarFicha(tablero, col, jugadorActual, fila);
-        movimientos++; // Incrementar contador de movimientos
-
-        // 4. Verificar si hay ganador
-        if (verificarVictoria(tablero, jugadorActual, fila, col)) {
-            imprimirTablero(tablero); // Mostrar el tablero ganador
-            std::cout << "¡¡¡FELICIDADES JUGADOR " << jugadorActual << " GANA!!!" << std::endl;
-            juegoEnCurso = false;
-            continue; // Salta al final del bucle
-        }
-
-        // 5. Verificar si hay empate
-        if (movimientos == FILAS * COLUMNAS) {
+        // --- Bucle principal del juego (como en Segmento 3) ---
+        while (juegoEnCurso) {
+            // 1. Mostrar tablero
             imprimirTablero(tablero);
-            std::cout << "¡¡¡JUEGO TERMINADO!!! Es un EMPATE." << std::endl;
-            juegoEnCurso = false;
-            continue;
+
+            // 2. Pedir jugada
+            int col = obtenerMovimientoValido(tablero, jugadorActual);
+
+            // 3. Colocar ficha
+            int fila;
+            soltarFicha(tablero, col, jugadorActual, fila);
+            movimientos++;
+
+            // 4. Verificar si hay ganador
+            if (verificarVictoria(tablero, jugadorActual, fila, col)) {
+                imprimirTablero(tablero);
+                std::cout << "¡¡¡FELICIDADES JUGADOR " << jugadorActual << " GANA!!!" << std::endl;
+                juegoEnCurso = false;
+                continue;
+            }
+
+            // 5. Verificar si hay empate
+            if (movimientos == FILAS * COLUMNAS) {
+                imprimirTablero(tablero);
+                std::cout << "¡¡¡JUEGO TERMINADO!!! Es un EMPATE." << std::endl;
+                juegoEnCurso = false;
+                continue;
+            }
+
+            // 6. Cambiar de jugador
+            jugadorActual = (jugadorActual == JUGADOR_X) ? JUGADOR_O : JUGADOR_X;
         }
 
-        // 6. Cambiar de jugador
-        jugadorActual = (jugadorActual == JUGADOR_X) ? JUGADOR_O : JUGADOR_X;
-    }
+        // --- Preguntar por revancha ---
+        std::cout << "\n¿Quieren jugar de nuevo? (s/n): ";
+        std::cin >> jugarDeNuevo;
+        // Limpiar buffer por si escriben más de un carácter
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    } while (std::tolower(jugarDeNuevo) == 's');
+
+    std::cout << "\n¡Gracias por jugar! Adios.\n";
 
     return 0;
 }
@@ -158,25 +174,15 @@ int obtenerMovimientoValido(const Tablero& tablero, char jugador) {
 
 /**
  * @brief Comprueba si el último movimiento (f, c) resultó en una victoria.
- * @param tablero El tablero de juego.
- * @param jugador El jugador que acaba de mover.
- * @param f La fila de la última ficha.
- * @param c La columna de la última ficha.
- * @return true si el jugador ha ganado, false en caso contrario.
  */
 bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c) {
     int contador;
 
-    // 1. Comprobar Vertical (Solo hacia abajo, ya que la ficha cae)
+    // 1. Comprobar Vertical
     contador = 0;
-    // Solo necesitamos contar 4 hacia abajo desde la ficha actual (f, c)
-    // No puede haber 4 en raya vertical *hacia arriba* de la ficha que acaba de caer.
     for (int i = f; i < FILAS; ++i) {
-        if (tablero[i][c] == jugador) {
-            contador++;
-        } else {
-            break; // No son consecutivas
-        }
+        if (tablero[i][c] == jugador) contador++;
+        else break;
     }
     if (contador >= 4) return true;
 
@@ -187,20 +193,14 @@ bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c) {
             contador++;
             if (contador >= 4) return true;
         } else {
-            contador = 0; // Reiniciar contador si se rompe la secuencia
+            contador = 0;
         }
     }
 
     // 3. Comprobar Diagonal Descendente (↘)
     contador = 0;
-    // Ir al inicio de esta diagonal (arriba-izquierda)
-    int tempF = f;
-    int tempC = c;
-    while (tempF > 0 && tempC > 0) {
-        tempF--;
-        tempC--;
-    }
-    // Recorrer la diagonal hacia abajo-derecha
+    int tempF = f, tempC = c;
+    while (tempF > 0 && tempC > 0) { tempF--; tempC--; }
     while (tempF < FILAS && tempC < COLUMNAS) {
         if (tablero[tempF][tempC] == jugador) {
             contador++;
@@ -214,14 +214,8 @@ bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c) {
 
     // 4. Comprobar Diagonal Ascendente (↗)
     contador = 0;
-    // Ir al inicio de esta diagonal (abajo-izquierda)
-    tempF = f;
-    tempC = c;
-    while (tempF < FILAS - 1 && tempC > 0) {
-        tempF++;
-        tempC--;
-    }
-    // Recorrer la diagonal hacia arriba-derecha
+    tempF = f, tempC = c;
+    while (tempF < FILAS - 1 && tempC > 0) { tempF++; tempC--; }
     while (tempF >= 0 && tempC < COLUMNAS) {
         if (tablero[tempF][tempC] == jugador) {
             contador++;
@@ -233,5 +227,5 @@ bool verificarVictoria(const Tablero& tablero, char jugador, int f, int c) {
         tempC++;
     }
 
-    return false; // No se encontró ninguna victoria
+    return false;
 }
