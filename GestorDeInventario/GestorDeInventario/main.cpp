@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
-#include <stdexcept> // Para excepciones
+#include <stdexcept>
 
 using namespace std;
 
@@ -15,8 +15,10 @@ struct Producto {
 // --- PROTOTIPOS ---
 void mostrarMenu();
 void mostrarInventario(Producto inventario[], int total);
-void buscarProducto(Producto inventario[], int total);
+// Retorna puntero para poder modificarlo despues
+Producto* buscarProductoPtr(Producto inventario[], int total, int idBuscado);
 void ordenarPorPrecio(Producto inventario[], int total);
+void modificarStock(Producto* prod);
 
 int main() {
     const int MAX_PRODUCTOS = 10;
@@ -48,22 +50,37 @@ int main() {
             case 1:
                 mostrarInventario(inventario, MAX_PRODUCTOS);
                 break;
-            case 2:
-                // Búsqueda con manejo de excepciones
-                try {
-                    buscarProducto(inventario, MAX_PRODUCTOS);
-                } catch (const runtime_error& e) {
-                    cout << "\n>> ALERTA: " << e.what() << endl;
+            case 2: {
+                int id;
+                cout << "Ingrese ID a buscar: ";
+                cin >> id;
+                Producto* p = buscarProductoPtr(inventario, MAX_PRODUCTOS, id);
+                if (p != nullptr) {
+                    cout << "\n>> ENCONTRADO: " << p->nombre << " | Stock: " << p->cantidad << endl;
+                } else {
+                    cout << "\n>> ERROR: Producto no encontrado.\n";
                 }
                 break;
+            }
             case 3:
                 ordenarPorPrecio(inventario, MAX_PRODUCTOS);
                 cout << "\n>> Inventario ordenado por precio (menor a mayor).\n";
                 mostrarInventario(inventario, MAX_PRODUCTOS);
                 break;
-            case 4:
-                cout << "\n[LOGICA DE MODIFICACION PENDIENTE]\n";
+            case 4: {
+                // Modificacion usando punteros
+                int id;
+                cout << "Ingrese ID del producto a modificar: ";
+                cin >> id;
+                Producto* p = buscarProductoPtr(inventario, MAX_PRODUCTOS, id);
+
+                if (p != nullptr) {
+                    modificarStock(p); // Pasamos el puntero
+                } else {
+                    cout << "\n>> ERROR: No se puede modificar, producto no existe.\n";
+                }
                 break;
+            }
             case 5:
                 cout << "Saliendo del gestor...\n";
                 break;
@@ -113,40 +130,40 @@ void mostrarInventario(Producto inventario[], int total) {
     }
 }
 
-void buscarProducto(Producto inventario[], int total) {
-    int idBuscado;
-    bool encontrado = false;
-    cout << "Ingrese el ID del producto a buscar: ";
-    cin >> idBuscado;
-
+Producto* buscarProductoPtr(Producto inventario[], int total, int idBuscado) {
     for(int i = 0; i < total; i++) {
         if (inventario[i].id == idBuscado) {
-            cout << "\n>> PRODUCTO ENCONTRADO:\n";
-            cout << "Nombre: " << inventario[i].nombre << endl;
-            cout << "Precio: $" << inventario[i].precio << endl;
-            cout << "Stock:  " << inventario[i].cantidad << endl;
-            encontrado = true;
-            break;
+            return &inventario[i]; // Retorna direccion de memoria
         }
     }
-
-    if (!encontrado) {
-        // Lanzamos excepcion si no se encuentra
-        throw runtime_error("Producto no encontrado en la base de datos.");
-    }
+    return nullptr;
 }
 
 void ordenarPorPrecio(Producto inventario[], int total) {
-    // Metodo de Burbuja
     Producto temp;
     for(int i = 0; i < total - 1; i++) {
         for(int j = 0; j < total - 1 - i; j++) {
             if (inventario[j].precio > inventario[j+1].precio) {
-                // Intercambio
                 temp = inventario[j];
                 inventario[j] = inventario[j+1];
                 inventario[j+1] = temp;
             }
         }
+    }
+}
+
+void modificarStock(Producto* prod) {
+    int nuevoStock;
+    cout << "Producto seleccionado: " << prod->nombre << endl;
+    cout << "Stock actual: " << prod->cantidad << endl;
+    cout << "Ingrese nueva cantidad: ";
+    cin >> nuevoStock;
+
+    if (nuevoStock >= 0) {
+        // Modificamos el valor original a traves del puntero
+        prod->cantidad = nuevoStock;
+        cout << ">> Stock actualizado correctamente.\n";
+    } else {
+        cout << ">> ERROR: La cantidad no puede ser negativa.\n";
     }
 }
