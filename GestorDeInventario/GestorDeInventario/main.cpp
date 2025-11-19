@@ -1,3 +1,5 @@
+// https://github.com/GabrielBlanchett/ejercicios_uas/tree/main/GestorDeInventario/GestorDeInventario SOURCES
+
 #include <iostream>
 #include <string>
 #include <iomanip>
