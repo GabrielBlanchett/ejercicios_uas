@@ -14,9 +14,10 @@ struct Cuenta {
 
 // --- PROTOTIPOS DE FUNCIONES ---
 void mostrarMenu();
-// Función que devuelve un puntero a la cuenta encontrada o nullptr si no existe
 Cuenta* buscarCuenta(Cuenta cuentas[], int totalCuentas, int id, int nip);
 void consultarSaldo(Cuenta* cuenta);
+void retirar(Cuenta* cuenta, double monto);
+void depositar(Cuenta* cuenta, double monto);
 
 int main() {
     const int NUM_CUENTAS = 3;
@@ -27,15 +28,14 @@ int main() {
     };
 
     int opcion;
-    // Puntero a la cuenta actualmente logueada. nullptr indica que no hay sesión.
     Cuenta* cuentaActual = nullptr;
 
     do {
         mostrarMenu();
         if (cuentaActual != nullptr) {
-            cout << ">> Usuario activo: " << cuentaActual->titular << " (Cuenta: " << cuentaActual->numeroCuenta << ")" << endl;
+            cout << ">> Usuario activo: " << cuentaActual->titular << " (Saldo: $" << cuentaActual->saldo << ")" << endl;
         } else {
-            cout << ">> NO HAY SESION INICIADA. Por favor inicie sesion primero." << endl;
+            cout << ">> NO HAY SESION INICIADA." << endl;
         }
         cout << "--------------------------------------" << endl;
         cout << "Seleccione una opcion: ";
@@ -53,45 +53,45 @@ int main() {
                 cin >> id;
                 cout << "Ingrese NIP: ";
                 cin >> nip;
-
-                // Buscamos la cuenta y asignamos la dirección al puntero
                 cuentaActual = buscarCuenta(cuentas, NUM_CUENTAS, id, nip);
-
-                if (cuentaActual != nullptr) {
-                    cout << "\n>> Bienvenido, " << cuentaActual->titular << "!\n";
-                } else {
-                    cout << "\n>> ERROR: Credenciales incorrectas.\n";
-                }
+                if (cuentaActual != nullptr) cout << "\n>> Bienvenido, " << cuentaActual->titular << "!\n";
+                else cout << "\n>> ERROR: Credenciales incorrectas.\n";
                 break;
             }
-            case 2:
+            case 2: {
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
-                cout << "\n[LOGICA DE RETIRO PENDIENTE]\n";
+                double monto;
+                cout << "Ingrese monto a retirar: $";
+                cin >> monto;
+                retirar(cuentaActual, monto);
                 break;
-            case 3:
+            }
+            case 3: {
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
-                cout << "\n[LOGICA DE DEPOSITO PENDIENTE]\n";
+                double monto;
+                cout << "Ingrese monto a depositar: $";
+                cin >> monto;
+                depositar(cuentaActual, monto);
                 break;
+            }
             case 4:
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
                 cout << "\n[LOGICA DE TRANSFERENCIA PENDIENTE]\n";
                 break;
             case 5:
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
-                // Pasamos el puntero a la función
                 consultarSaldo(cuentaActual);
                 break;
             case 6:
                 cout << "\nSaliendo del sistema...\n";
                 break;
             default:
-                cout << "\nOpcion no valida. Intente de nuevo.\n";
+                cout << "\nOpcion no valida.\n";
         }
 
         cout << "\nPresione Enter para continuar...";
         cin.ignore();
         cin.get();
-
         #ifdef _WIN32
             system("cls");
         #else
@@ -117,19 +117,37 @@ void mostrarMenu() {
     cout << "======================================" << endl;
 }
 
-// Retorna puntero a la cuenta si coincide ID y NIP, sino retorna nullptr
 Cuenta* buscarCuenta(Cuenta cuentas[], int totalCuentas, int id, int nip) {
     for(int i = 0; i < totalCuentas; i++) {
-        if(cuentas[i].numeroCuenta == id && cuentas[i].nip == nip) {
-            return &cuentas[i]; // Retornamos la dirección de memoria de esa cuenta
-        }
+        if(cuentas[i].numeroCuenta == id && cuentas[i].nip == nip) return &cuentas[i];
     }
     return nullptr;
 }
 
 void consultarSaldo(Cuenta* cuenta) {
-    // Accedemos a los miembros de la estructura a través del puntero usando ->
     cout << "\n--- CONSULTA DE SALDO ---" << endl;
     cout << "Titular: " << cuenta->titular << endl;
     cout << "Saldo Disponible: $" << cuenta->saldo << endl;
+}
+
+void retirar(Cuenta* cuenta, double monto) {
+    if (monto <= 0) {
+        cout << ">> ERROR: El monto debe ser mayor a cero." << endl;
+        return;
+    }
+    if (cuenta->saldo >= monto) {
+        cuenta->saldo -= monto;
+        cout << ">> RETIRO EXITOSO. Nuevo saldo: $" << cuenta->saldo << endl;
+    } else {
+        cout << ">> ERROR: Saldo insuficiente." << endl;
+    }
+}
+
+void depositar(Cuenta* cuenta, double monto) {
+    if (monto > 0) {
+        cuenta->saldo += monto;
+        cout << ">> DEPOSITO EXITOSO. Nuevo saldo: $" << cuenta->saldo << endl;
+    } else {
+        cout << ">> ERROR: El monto debe ser positivo." << endl;
+    }
 }
