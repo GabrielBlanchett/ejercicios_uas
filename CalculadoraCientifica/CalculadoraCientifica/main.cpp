@@ -1,23 +1,19 @@
 #include <iostream>
 #include <cmath>
+#include <stdexcept> // Para manejo de excepciones
 
 using namespace std;
 
 // --- PROTOTIPOS ---
 void mostrarMenu();
-
-// Basicas
 double sumar(double a, double b);
-int sumar(int a, int b); // Sobrecarga
 double restar(double a, double b);
 double multiplicar(double a, double b);
+// Funciones que lanzaran excepciones
 double dividir(double a, double b);
-
-// Avanzadas
-// Parametro por omision: si no envian exp, se eleva al cuadrado
 double potencia(double base, int exp = 2);
 double raizCuadrada(double num);
-long long factorial(int n); // Recursividad
+long long factorial(int n);
 
 int main() {
     int opcion;
@@ -31,55 +27,58 @@ int main() {
             cin.clear(); cin.ignore(10000, '\n');
         }
 
-        switch(opcion) {
-            case 1: // Suma con demostracion de sobrecarga
-                cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
-                // Si ambos son enteros, se podria llamar a la version int, aqui usamos double general
-                cout << "Resultado: " << sumar(num1, num2) << endl;
-                break;
-            case 2:
-                cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
-                cout << "Resultado: " << restar(num1, num2) << endl;
-                break;
-            case 3:
-                cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
-                cout << "Resultado: " << multiplicar(num1, num2) << endl;
-                break;
-            case 4:
-                cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
-                if (num2 != 0) cout << "Resultado: " << dividir(num1, num2) << endl;
-                else cout << "Error: Division por cero." << endl;
-                break;
-            case 5: // Factorial
-                int n;
-                cout << "Ingrese numero entero positivo para factorial: ";
-                cin >> n;
-                if (n < 0) cout << "No existe factorial de negativos.\n";
-                else cout << "Factorial de " << n << " es: " << factorial(n) << endl;
-                break;
-            case 6: // Potencia
-                int exp;
-                cout << "Ingrese base: "; cin >> num1;
-                cout << "Desea ingresar exponente? (1: Si, 0: No, usar cuadrado): ";
-                int usaExp; cin >> usaExp;
-                if (usaExp == 1) {
-                    cout << "Ingrese exponente: "; cin >> exp;
-                    cout << "Resultado: " << potencia(num1, exp) << endl;
-                } else {
-                    // Llamada usando parametro por omision
-                    cout << "Resultado (al cuadrado): " << potencia(num1) << endl;
-                }
-                break;
-            case 7: // Raiz
-                cout << "Ingrese numero: "; cin >> num1;
-                if (num1 >= 0) cout << "Raiz: " << raizCuadrada(num1) << endl;
-                else cout << "Error: Raiz negativa." << endl;
-                break;
-            case 8:
-                cout << "Saliendo..." << endl;
-                break;
-            default:
-                cout << "Opcion no valida." << endl;
+        if (opcion == 8) break;
+
+        // BLOQUE TRY-CATCH PRINCIPAL
+        try {
+            switch(opcion) {
+                case 1:
+                    cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
+                    cout << "Resultado: " << sumar(num1, num2) << endl;
+                    break;
+                case 2:
+                    cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
+                    cout << "Resultado: " << restar(num1, num2) << endl;
+                    break;
+                case 3:
+                    cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
+                    cout << "Resultado: " << multiplicar(num1, num2) << endl;
+                    break;
+                case 4:
+                    cout << "Ingrese dos numeros: "; cin >> num1 >> num2;
+                    // La funcion lanzara throw si num2 es 0
+                    cout << "Resultado: " << dividir(num1, num2) << endl;
+                    break;
+                case 5:
+                    int n;
+                    cout << "Ingrese numero entero positivo: "; cin >> n;
+                    cout << "Factorial: " << factorial(n) << endl;
+                    break;
+                case 6:
+                    int exp;
+                    cout << "Ingrese base: "; cin >> num1;
+                    cout << "Desea ingresar exponente? (1: Si, 0: No): ";
+                    int usaExp; cin >> usaExp;
+                    if (usaExp == 1) {
+                        cout << "Ingrese exponente: "; cin >> exp;
+                        cout << "Resultado: " << potencia(num1, exp) << endl;
+                    } else {
+                        cout << "Resultado (al cuadrado): " << potencia(num1) << endl;
+                    }
+                    break;
+                case 7:
+                    cout << "Ingrese numero: "; cin >> num1;
+                    cout << "Raiz: " << raizCuadrada(num1) << endl;
+                    break;
+                default:
+                    cout << "Opcion no valida." << endl;
+            }
+        }
+        catch (const runtime_error& e) {
+            cout << "\n>>> ERROR MATEMATICO: " << e.what() << " <<<\n";
+        }
+        catch (const invalid_argument& e) {
+            cout << "\n>>> ERROR DE ARGUMENTO: " << e.what() << " <<<\n";
         }
 
         cout << "\nPresione Enter...";
@@ -101,30 +100,42 @@ void mostrarMenu() {
     cout << "1. Sumar" << endl;
     cout << "2. Restar" << endl;
     cout << "3. Multiplicar" << endl;
-    cout << "4. Dividir" << endl;
+    cout << "4. Dividir (Excepciones)" << endl;
     cout << "5. Factorial (Recursivo)" << endl;
-    cout << "6. Potencia (Parametros por omision)" << endl;
-    cout << "7. Raiz Cuadrada" << endl;
+    cout << "6. Potencia" << endl;
+    cout << "7. Raiz Cuadrada (Excepciones)" << endl;
     cout << "8. Salir" << endl;
     cout << "----------------------------" << endl;
 }
 
 double sumar(double a, double b) { return a + b; }
-int sumar(int a, int b) { return a + b; } // Sobrecarga
 double restar(double a, double b) { return a - b; }
 double multiplicar(double a, double b) { return a * b; }
-double dividir(double a, double b) { return a / b; }
 
-// Parametro por omision definido en prototipo, aqui solo implementacion
+double dividir(double a, double b) {
+    if (b == 0) {
+        // Lanzamos excepcion estandar
+        throw runtime_error("Division entre cero no permitida.");
+    }
+    return a / b;
+}
+
 double potencia(double base, int exp) {
     return pow(base, exp);
 }
 
 double raizCuadrada(double num) {
+    if (num < 0) {
+        // Lanzamos excepcion para raices imaginarias
+        throw runtime_error("No se puede calcular raiz cuadrada de numero negativo.");
+    }
     return sqrt(num);
 }
 
 long long factorial(int n) {
-    if (n <= 1) return 1; // Caso base
-    return n * factorial(n - 1); // Llamada recursiva
+    if (n < 0) {
+        throw invalid_argument("El factorial no esta definido para numeros negativos.");
+    }
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
 }
