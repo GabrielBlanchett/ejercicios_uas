@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdexcept> // Necesario para excepciones
 
 using namespace std;
 
@@ -15,9 +16,12 @@ struct Cuenta {
 // --- PROTOTIPOS DE FUNCIONES ---
 void mostrarMenu();
 Cuenta* buscarCuenta(Cuenta cuentas[], int totalCuentas, int id, int nip);
+// Nueva funcion auxiliar para buscar destino sin nip
+Cuenta* buscarDestino(Cuenta cuentas[], int totalCuentas, int id);
 void consultarSaldo(Cuenta* cuenta);
 void retirar(Cuenta* cuenta, double monto);
 void depositar(Cuenta* cuenta, double monto);
+void transferir(Cuenta* origen, Cuenta cuentas[], int totalCuentas, int idDestino, double monto);
 
 int main() {
     const int NUM_CUENTAS = 3;
@@ -74,10 +78,25 @@ int main() {
                 depositar(cuentaActual, monto);
                 break;
             }
-            case 4:
+            case 4: {
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
-                cout << "\n[LOGICA DE TRANSFERENCIA PENDIENTE]\n";
+                int idDestino;
+                double monto;
+                cout << "Ingrese Cuenta Destino: ";
+                cin >> idDestino;
+                cout << "Ingrese monto a transferir: $";
+                cin >> monto;
+
+                // Uso de try-catch para manejo de excepciones en la transferencia
+                try {
+                    transferir(cuentaActual, cuentas, NUM_CUENTAS, idDestino, monto);
+                } catch (const invalid_argument& e) {
+                    cout << "\n>> EXCEPCION: " << e.what() << endl;
+                } catch (const runtime_error& e) {
+                    cout << "\n>> ERROR DE TRANSACCION: " << e.what() << endl;
+                }
                 break;
+            }
             case 5:
                 if (cuentaActual == nullptr) { cout << "\n>> DEBE INICIAR SESION PRIMERO.\n"; break; }
                 consultarSaldo(cuentaActual);
@@ -124,6 +143,13 @@ Cuenta* buscarCuenta(Cuenta cuentas[], int totalCuentas, int id, int nip) {
     return nullptr;
 }
 
+Cuenta* buscarDestino(Cuenta cuentas[], int totalCuentas, int id) {
+    for(int i = 0; i < totalCuentas; i++) {
+        if(cuentas[i].numeroCuenta == id) return &cuentas[i];
+    }
+    return nullptr;
+}
+
 void consultarSaldo(Cuenta* cuenta) {
     cout << "\n--- CONSULTA DE SALDO ---" << endl;
     cout << "Titular: " << cuenta->titular << endl;
@@ -150,4 +176,32 @@ void depositar(Cuenta* cuenta, double monto) {
     } else {
         cout << ">> ERROR: El monto debe ser positivo." << endl;
     }
+}
+
+void transferir(Cuenta* origen, Cuenta cuentas[], int totalCuentas, int idDestino, double monto) {
+    if (monto <= 0) {
+        throw invalid_argument("El monto a transferir debe ser positivo.");
+    }
+
+    if (origen->numeroCuenta == idDestino) {
+        throw invalid_argument("No puede transferirse a la misma cuenta.");
+    }
+
+    Cuenta* destino = buscarDestino(cuentas, totalCuentas, idDestino);
+
+    if (destino == nullptr) {
+        throw runtime_error("La cuenta destino no existe.");
+    }
+
+    if (origen->saldo < monto) {
+        throw runtime_error("Saldo insuficiente para realizar la transferencia.");
+    }
+
+    // Realizar transaccion
+    origen->saldo -= monto;
+    destino->saldo += monto;
+
+    cout << "\n>> TRANSFERENCIA EXITOSA." << endl;
+    cout << ">> Se transfirieron $" << monto << " a la cuenta " << idDestino << " (" << destino->titular << ")." << endl;
+    cout << ">> Su nuevo saldo: $" << origen->saldo << endl;
 }
